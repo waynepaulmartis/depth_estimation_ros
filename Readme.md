@@ -20,7 +20,7 @@ compressed_image_transport
 In the ros2 workspace run the following to build the package
 
 ```bash
-colcon build --symlink-Installation
+colcon build --symlink-install
 source install/setup.bash
 ``` 
 Then run the command
