@@ -1,3 +1,2 @@
-/depth_estimation_ros/depth_anything_v2/checkpoints
-/depth_estimation_ros/depth_anything_v2/depth_vis
-/rosbags
+rosbags/
+depth_estimation_ros/depth_anything_v2/checkpoints
