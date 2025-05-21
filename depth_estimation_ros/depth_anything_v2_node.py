@@ -35,7 +35,7 @@ class DepthEstimationNode(Node):
             CompressedImage,
             '/camera_0/image/compressed',
             self.image_callback,
-            10)
+            1)
         
         self.publisher = self.create_publisher(Image, '/depth/image', 10)
         self.get_logger().info("Depth Estimation Node Initialized")
