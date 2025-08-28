@@ -24,7 +24,7 @@ class DepthEstimationNode(Node):
         }
         self.cmap = matplotlib.cm.get_cmap('Spectral_r')
         self.depth_model = DepthAnythingV2(**model_configs[encoder])
-        checkpoint_path = f'./src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/depth_anything_v2_{encoder}.pth'
+        checkpoint_path = f'./src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/depth_anything_v2_metric_lars_vits.pth'
 
         self.get_logger().info("Loading model checkpoint...")
         self.depth_model.load_state_dict(torch.load(checkpoint_path, map_location='cpu'))
