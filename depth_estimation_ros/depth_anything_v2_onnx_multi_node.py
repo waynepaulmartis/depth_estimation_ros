@@ -145,7 +145,7 @@ class DepthEstimationONNXMultiNode(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    onnx_model_path = '/home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/vits_multi.onnx'
+    onnx_model_path = '/home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/vits_multi_small.onnx'
 
     node = DepthEstimationONNXMultiNode(onnx_model_path)
     rclpy.spin(node)
