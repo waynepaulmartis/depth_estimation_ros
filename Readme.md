@@ -48,3 +48,17 @@ rqt
 ├── checkpoints/
 │   └── depth_anything_v2_{encoder}.pth
 ```
+
+## Citation
+
+Please cite
+
+```bash
+    @article{depth_anything_v2,
+  title={Depth Anything V2},
+  author={Yang, Lihe and Kang, Bingyi and Huang, Zilong and Zhao, Zhen and Xu, Xiaogang and Feng, Jiashi and Zhao, Hengshuang},
+  journal={arXiv:2406.09414},
+  year={2024}
+}
+```
+
