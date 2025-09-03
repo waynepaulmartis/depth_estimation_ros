@@ -1,0 +1,24 @@
+running develop
+running egg_info
+creating depth_estimation_ros.egg-info
+writing depth_estimation_ros.egg-info/PKG-INFO
+writing dependency_links to depth_estimation_ros.egg-info/dependency_links.txt
+writing entry points to depth_estimation_ros.egg-info/entry_points.txt
+writing requirements to depth_estimation_ros.egg-info/requires.txt
+writing top-level names to depth_estimation_ros.egg-info/top_level.txt
+writing manifest file 'depth_estimation_ros.egg-info/SOURCES.txt'
+reading manifest file 'depth_estimation_ros.egg-info/SOURCES.txt'
+writing manifest file 'depth_estimation_ros.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/lib/python3.10/site-packages/depth-estimation-ros.egg-link (link to .)
+Installing depth_anything_v2_node script to /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/lib/depth_estimation_ros
+Installing depth_estimation_onnx_multi_node script to /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/lib/depth_estimation_ros
+Installing depth_estimation_onnx_node script to /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/lib/depth_estimation_ros
+
+Installed /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/build/depth_estimation_ros
+running symlink_data
+creating /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/share/ament_index
+creating /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/share/ament_index/resource_index
+creating /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/share/ament_index/resource_index/packages
+symbolically linking /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/build/depth_estimation_ros/resource/depth_estimation_ros -> /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/share/ament_index/resource_index/packages
+symbolically linking /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/build/depth_estimation_ros/package.xml -> /home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/install/depth_estimation_ros/share/depth_estimation_ros

@@ -67,7 +67,7 @@ class DepthEstimationONNXNode(Node):
 
         start_time = time.time()
         depth = self.run_inference(image)
-
+        
 
         # Resize depth to original image size
         depth_tensor = torch.from_numpy(depth)
@@ -79,15 +79,20 @@ class DepthEstimationONNXNode(Node):
             mode='bicubic',
             align_corners=False
         ).squeeze().cpu().numpy()
+        
+        inference_time = time.time() - start_time
+        self.get_logger().info(f"Inference Rate: {1/inference_time:.2f} FPS")
+
 
 
         # Normalize depth for visualization
         vis_depth = (depth_resized - depth_resized.min()) / (depth_resized.max() - depth_resized.min() + 1e-8)
+
         vis_depth = (vis_depth * 255).astype(np.uint8)
         vis_depth_color = (self.cmap(vis_depth)[:, :, :3] * 255).astype(np.uint8)[..., ::-1]  # RGB->BGR
-        inference_time = time.time() - start_time
 
-        self.get_logger().info(f"Inference Rate: {1/inference_time:.2f} FPS")
+
+        
 
         # Publish depth visualization
         depth_msg = self.bridge.cv2_to_imgmsg(vis_depth_color, encoding='bgr8')

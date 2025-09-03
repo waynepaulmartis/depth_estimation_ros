@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'depth_anything_v2_node = depth_estimation_ros.depth_anything_v2_node:main',
             'depth_estimation_onnx_node = depth_estimation_ros.depth_anything_v2_onnx_node:main',
+            'depth_estimation_onnx_multi_node = depth_estimation_ros.depth_anything_v2_onnx_multi_node:main',
         ],
     },
 )
