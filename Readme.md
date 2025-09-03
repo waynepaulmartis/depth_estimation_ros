@@ -41,6 +41,8 @@ rqt
 ```bash
 ├── depth_estimation_ros/
 │   ├── depth_anything_v2_node.py
+|   ├── depth_anything_v2_onnx_multi_node.py
+|   ├── depth_anything_v2_onnx_node.py
 │   └── __init__.py
 |   └── depth_anything_v2/  # contains the DepthAnything-v2 repo
 ├── rosbags/
@@ -54,7 +56,7 @@ rqt
 Please cite
 
 ```bash
-    @article{depth_anything_v2,
+@article{depth_anything_v2,
   title={Depth Anything V2},
   author={Yang, Lihe and Kang, Bingyi and Huang, Zilong and Zhao, Zhen and Xu, Xiaogang and Feng, Jiashi and Zhao, Hengshuang},
   journal={arXiv:2406.09414},
