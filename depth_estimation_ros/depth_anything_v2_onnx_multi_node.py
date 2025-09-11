@@ -131,13 +131,11 @@ class DepthEstimationONNXMultiNode(Node):
                 align_corners=False
             ).squeeze().cpu().numpy()
 
-            t0=time.time()
-            vis_depth = (depth_resized - depth_resized.min()) / (depth_resized.max() - depth_resized.min() + 1e-8)
-            vis_depth = (vis_depth * 255).astype(np.uint8)
-            vis_depth_color = (self.cmap(vis_depth)[:, :, :3] * 255).astype(np.uint8)[..., ::-1]
-            t1=time.time()
+            t0 = time.time()
+            # Publish the resized depth map as a 32FC1 image
+            depth_msg = self.bridge.cv2_to_imgmsg(depth_resized.astype(np.float32), encoding='32FC1')
+            t1 = time.time()
             self.get_logger().info(f"Time to process depth image from camera {i}: {(t1-t0)*1000:.2f} ms")
-            depth_msg = self.bridge.cv2_to_imgmsg(vis_depth_color, encoding='bgr8')
             depth_msg.header = headers[i]
             self.depth_publishers[i].publish(depth_msg)
 
@@ -145,7 +143,7 @@ class DepthEstimationONNXMultiNode(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    onnx_model_path = '/home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/vits_multi_small.onnx'
+    onnx_model_path = '/home/admin-jfinke/MA_Wayne_Martis/ros2_ws/src/depth_estimation_ros/depth_estimation_ros/depth_anything_v2/checkpoints/lars_multi.onnx'
 
     node = DepthEstimationONNXMultiNode(onnx_model_path)
     rclpy.spin(node)
