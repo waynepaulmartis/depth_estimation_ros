@@ -95,9 +95,15 @@ class ImageSubscriber(Node):
         if msg.encoding in ('16UC1', 'mono16'):
             depth = np.frombuffer(msg.data, np.uint16, count=msg.height * msg.width)\
                       .reshape(msg.height, msg.width).astype(np.float32) * 0.001
+            ## Divide Depth by 2
+            depth = depth / 2.0
+
         elif msg.encoding == '32FC1':
             depth = np.frombuffer(msg.data, np.float32, count=msg.height * msg.width)\
                       .reshape(msg.height, msg.width)
+            ## Divide Depth by 2
+            depth = depth / 2.0
+
         else:
             self.get_logger().warn(f"Unsupported encoding: {msg.encoding}")
             return
@@ -142,11 +148,20 @@ class ImageSubscriber(Node):
 
 
         ## Apply Some Manual Mapping here to match the URDF Frames
-        #if msg.header.frame_id == "/cam1":
-        #    msg.header.frame_id = "/camera00_link"
-
+        if msg.header.frame_id == "/cam2":
+            cloud.header.frame_id = "/rmwayne/camera00_link"
+            self.pc_pubs[0].publish(cloud)
+        if msg.header.frame_id == "/cam3":
+            cloud.header.frame_id = "/rmwayne/camera01_link"
+            self.pc_pubs[1].publish(cloud)
+        if msg.header.frame_id == "/cam1":
+            cloud.header.frame_id = "/rmwayne/camera02_link"
+            self.pc_pubs[2].publish(cloud)
+        if msg.header.frame_id == "/cam0":
+            cloud.header.frame_id = "/rmwayne/camera03_link"
+            self.pc_pubs[3].publish(cloud)
         
-        self.pc_pubs[0].publish(cloud)
+        #self.pc_pubs[cam_idx].publish(cloud)
 
     def _make_pc2_optical(self, pts: np.ndarray, header_in: Header) -> PointCloud2:
         msg = PointCloud2()
@@ -156,17 +171,17 @@ class ImageSubscriber(Node):
         # Im *optischen* Frame veröffentlichen (damit Z vorwärts & Y nach unten ist)
         fid = (header_in.frame_id or "").lstrip('/')
 
-        if fid == "cam0":
-            msg.header.frame_id = "camera00_link"
-        elif fid == "cam1":
-            msg.header.frame_id = "camera01_link"
-        elif fid == "cam2":
-            msg.header.frame_id = "camera02_link"
-        elif fid == "cam3":
-            msg.header.frame_id = "camera03_link"
-        else:
+        #if fid == "cam0":
+        #    msg.header.frame_id = "rmwayne/camera00_link"
+        #elif fid == "cam1":
+        #    msg.header.frame_id = "rmwayne/camera01_link"
+        #elif fid == "cam2":
+        #    msg.header.frame_id = "rmwayne/camera02_link"
+        #elif fid == "cam3":
+        #    msg.header.frame_id = "rmwayne/camera03_link"
+        #else:
             # Fallback (falls dein Sensor andere Frame-IDs liefert)
-            msg.header.frame_id = "camera_optical_frame"
+        #    msg.header.frame_id = "camera_optical_frame"
 
         msg.height = 1
         msg.width = pts.shape[0]
