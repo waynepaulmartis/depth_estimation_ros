@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import cv2
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, PointCloud2, PointField
@@ -6,10 +7,14 @@ from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import Header
 import numpy as np
 from collections import deque
+from turbojpeg import TurboJPEG, TJPF_GRAY, TJSAMP_GRAY, TJFLAG_PROGRESSIVE, TJFLAG_FASTUPSAMPLE, TJFLAG_FASTDCT
+
 
 class ImageSubscriber(Node):
     def __init__(self):
         super().__init__('four_image_subscriber')
+
+        self.jpeg = TurboJPEG()
 
         # --- Intrinsics der KALIBRIERAUFLÖSUNG (z. B. 1920x1200) ---
         self.declare_parameter('fx_full', 894.671111)
@@ -71,6 +76,16 @@ class ImageSubscriber(Node):
         #self.get_logger().info(f"Received compressed image on /camera_{cam_idx}/image/compressed, size: {len(msg.data)} bytes")
         ## Save to buffer
         self.compressed_image_buffers[cam_idx].append(msg)
+
+    def decode_with_turbo(self, jpeg_bytes):
+
+        np_arr = self.jpeg.decode(jpeg_bytes, flags=TJFLAG_FASTUPSAMPLE | TJFLAG_FASTDCT)
+        # Convert from BGR (default from TurboJPEG) to RGB
+        np_arr = cv2.cvtColor(np_arr, cv2.COLOR_BGR2RGB)
+        return np_arr
+
+    ## Save images if the first camera's sequence number is 100
+
 
     # ---------- Hilfsfunktionen ----------
     def _scaled_intrinsics(self, w: int, h: int):
@@ -236,14 +251,16 @@ class ImageSubscriber(Node):
                 if img_msg.header.stamp.sec == timestamp.sec and img_msg.header.stamp.nanosec == timestamp.nanosec:
 
                     ## Print that matching timestamp found
-                    self.get_logger().info(f"Found matching timestamp for camera {cam_idx}: {timestamp .sec}.{timestamp.nanosec}")
+                    #self.get_logger().info(f"Found matching timestamp for camera {cam_idx}: {timestamp .sec}.{timestamp.nanosec}")
                     
                     ## Decode the compressed image
-                    import cv2
-                    import numpy as np
-                    np_arr = np.frombuffer(img_msg.data, np.uint8)
-                    image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-                    image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)  # CHANGED: in RGB wandeln
+                    #import cv2
+                    #import numpy as np
+                    #np_arr = np.frombuffer(img_msg.data, np.uint8)
+                    #image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+                    
+                    #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)  # CHANGED: in RGB wandeln
+                    image_np = self.decode_with_turbo(img_msg.data)
                     return image_np
              
         else:
