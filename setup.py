@@ -1,4 +1,7 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
+
 
 package_name = 'depth_estimation_ros'
 
@@ -10,6 +13,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
     ],
     install_requires=['setuptools','numpy', 'torch', 'opencv-python', 'cv_bridge'],
     zip_safe=True,
@@ -23,6 +27,7 @@ setup(
             'depth_anything_v2_node = depth_estimation_ros.depth_anything_v2_node:main',
             'depth_estimation_onnx_node = depth_estimation_ros.depth_anything_v2_onnx_node:main',
             'depth_estimation_onnx_multi_node = depth_estimation_ros.depth_anything_v2_onnx_multi_node:main',
+            'depth_map_to_pointcloud = depth_estimation_ros.depth_map_to_pointcloud:main',
         ],
     },
 )
