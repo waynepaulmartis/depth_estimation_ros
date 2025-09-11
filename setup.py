@@ -28,6 +28,7 @@ setup(
             'depth_estimation_onnx_node = depth_estimation_ros.depth_anything_v2_onnx_node:main',
             'depth_estimation_onnx_multi_node = depth_estimation_ros.depth_anything_v2_onnx_multi_node:main',
             'depth_map_to_pointcloud = depth_estimation_ros.depth_map_to_pointcloud:main',
+            'depth_map_to_pointcloud_colorised = depth_estimation_ros.depth_map_to_pointcloud_colorised:main',
         ],
     },
 )
