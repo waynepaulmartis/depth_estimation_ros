@@ -29,6 +29,7 @@ class ImageSubscriber(Node):
 
         # Optionaler Downsampling-Faktor
         self.declare_parameter('step', 4)
+        self.declare_parameter('max_depth_m', 3.0)
 
         self.fx_full = float(self.get_parameter('fx_full').value)
         self.fy_full = float(self.get_parameter('fy_full').value)
@@ -37,6 +38,7 @@ class ImageSubscriber(Node):
         self.calib_w = int(self.get_parameter('calib_w').value)
         self.calib_h = int(self.get_parameter('calib_h').value)
         self.ds      = int(self.get_parameter('step').value)
+        self.max_depth_m = float(self.get_parameter('max_depth_m').value)
 
         # Abos + Publisher (4 Kameras)
         self.depth_image_subs = []
@@ -186,7 +188,13 @@ class ImageSubscriber(Node):
         # Indizes
         uu, vv = self._get_indices(h, w, self.ds)
 
+
+        maximum_depth_m = self.max_depth_m
+
+
         z = depth
+        ## Z needs to be bigger than 0 and smaller than maximum_depth_m
+        z[z > maximum_depth_m] = 0.0
         mask = (z > 0.0) & np.isfinite(z)
         if not mask.any():
             return

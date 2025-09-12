@@ -38,13 +38,33 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('zenoh'))
     )
 
+    pub_wheel_joints = Node(
+        package='ros_robomaster_description',
+        executable='joint_tester',
+        name='joint_tester',
+        namespace='rmwayne',
+        condition=IfCondition(LaunchConfiguration('play_bag'))
+    )
+
+    ## Launch rviz with rviz_config/rviz_config.rviz
+    rviz_config_file = get_package_share_path('depth_estimation_ros') / 'rviz_config' / 'rviz_config.rviz'
+    
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', str(rviz_config_file)],
+        output='screen'
+    )   
+
+
     robomaster_pkg_share = get_package_share_path('ros_robomaster_description')
     robomaster_launch_file = robomaster_pkg_share / 'launch' / 'ros_robomaster_description.launch.py'
     
 
-    ## Play the rosbag with the camera data at location rosbag_path and loop it
+    ## Play the rosbag with the camera data at location rosbag_path and loop it, at 10% rate
     play_rosbag = ExecuteProcess(
-        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop'],
+        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop', '--rate', '0.1'],
         output='screen',
         condition=IfCondition(LaunchConfiguration('play_bag'))
     )
@@ -76,6 +96,8 @@ def generate_launch_description():
         zenoh_router,
         include_robomaster,
         play_rosbag,  # <-- Add this line!
+        pub_wheel_joints,
+        rviz_node,
 
         # Launch Camera 
         Node(
