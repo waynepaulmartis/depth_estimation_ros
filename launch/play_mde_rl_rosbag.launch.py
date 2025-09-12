@@ -24,9 +24,11 @@ def generate_launch_description():
         description='Play rosbag'
     )
 
+    default_bag_dir = get_package_share_path('depth_estimation_ros') / 'rosbags' / 'test_bag_2'
+
     rosbag_path_arg = DeclareLaunchArgument(
         'rosbag_path',
-        default_value='/home/admin-jfinke/hunter_se_camera_calibration/processing/test_bag_2',
+        default_value=str(default_bag_dir),
         description='Path to rosbag directory (contains metadata.yaml)'
     )
 
@@ -48,6 +50,7 @@ def generate_launch_description():
 
     ## Launch rviz with rviz_config/rviz_config.rviz
     rviz_config_file = get_package_share_path('depth_estimation_ros') / 'rviz_config' / 'rviz_config.rviz'
+
     
     rviz_node = Node(
         package='rviz2',

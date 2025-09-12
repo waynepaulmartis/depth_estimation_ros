@@ -1,9 +1,26 @@
 from setuptools import find_packages, setup
 import os
 from glob import glob
+from pathlib import Path
 
 
 package_name = 'depth_estimation_ros'
+
+
+def collect_rosbags():
+    root = Path('rosbags')
+    if not root.exists():
+        return []
+    mapping = {}
+    for f in root.rglob('*'):
+        if f.is_file():
+            rel_dir = f.parent.relative_to(root)  # Unterordner relativ
+            dest = Path('share') / package_name / 'rosbags' / rel_dir
+            mapping.setdefault(dest.as_posix(), []).append(f.as_posix())
+    return sorted(mapping.items())
+
+rosbags_entries = collect_rosbags()
+
 
 setup(
     name=package_name,
@@ -15,7 +32,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'rviz_config'), glob('rviz_config/*.rviz')),
-    ],
+    ]+ rosbags_entries,
     install_requires=['setuptools','numpy', 'torch', 'opencv-python', 'cv_bridge'],
     zip_safe=True,
     maintainer='admin-jfinke',
