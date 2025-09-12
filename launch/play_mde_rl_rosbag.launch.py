@@ -17,14 +17,14 @@ def generate_launch_description():
         description='Name of the topic to subscribe to')
     
     zenoh_arg = DeclareLaunchArgument(name='zenoh',default_value='true',choices=['true', 'false'],
-        description='Flag to enable Zenoh router'    )
+        description='Flag to enable Zenoh router')
     
     play_bag_arg = DeclareLaunchArgument(
         'play_bag', default_value='true', choices=['true','false'],
         description='Play rosbag'
     )
 
-    default_bag_dir = get_package_share_path('depth_estimation_ros') / 'rosbags' / 'test_bag_2'
+    default_bag_dir = get_package_share_path('depth_estimation_ros') / 'rosbags' / 'test_bag_3'
 
     rosbag_path_arg = DeclareLaunchArgument(
         'rosbag_path',
@@ -67,7 +67,7 @@ def generate_launch_description():
 
     ## Play the rosbag with the camera data at location rosbag_path and loop it, at 10% rate
     play_rosbag = ExecuteProcess(
-        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop', '--rate', '0.1'],
+        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop', '--rate', '1.0'],
         output='screen',
         condition=IfCondition(LaunchConfiguration('play_bag'))
     )
@@ -91,7 +91,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         # Use this to activate sim time
-        launch_ros.actions.SetParameter(name='use_sim_time', value=False),
+        launch_ros.actions.SetParameter(name='use_sim_time', value=True),
         rosbag_path_arg,
         play_bag_arg,
         declare_topic_name,
@@ -99,7 +99,7 @@ def generate_launch_description():
         zenoh_router,
         include_robomaster,
         play_rosbag,  # <-- Add this line!
-        pub_wheel_joints,
+        #pub_wheel_joints,
         rviz_node,
 
         # Launch Camera 
