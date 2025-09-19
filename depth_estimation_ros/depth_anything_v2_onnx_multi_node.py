@@ -9,6 +9,7 @@ import onnxruntime as ort
 from sensor_msgs.msg import CompressedImage, Image
 from cv_bridge import CvBridge
 import matplotlib.cm
+import message_filters
 from turbojpeg import TurboJPEG, TJPF_GRAY, TJSAMP_GRAY, TJFLAG_PROGRESSIVE, TJFLAG_FASTUPSAMPLE, TJFLAG_FASTDCT
 
 
@@ -27,25 +28,26 @@ class DepthEstimationONNXMultiNode(Node):
         self.get_logger().info(f'ONNX Runtime providers: {self.session.get_providers()}')
         self.get_logger().info(f'Using device: {self.device}')
 
-        # Setup subscriptions and publishers
+        # Topics
         self.topic_names = [f'/camera_{i}/image/compressed' for i in range(4)]
-        self.image_buffers = {i: None for i in range(4)}
-        self.subscribers = []
-        self.depth_publishers = []
 
-        for i, topic in enumerate(self.topic_names):
-            sub = self.create_subscription(
-                CompressedImage,
-                topic,
-                lambda msg, idx=i: self.image_callback(msg, idx),
-                1
-            )
-            self.subscribers.append(sub)
+        # Depth publishers
+        self.depth_publishers = [
+            self.create_publisher(Image, f'/depth/image_{i}', 10) for i in range(4)
+        ]
 
-            pub = self.create_publisher(Image, f'/depth/image_{i}', 10)
-            self.depth_publishers.append(pub)
+        # Subscribers with synchronization
+        subs = [message_filters.Subscriber(self, CompressedImage, topic) 
+                for topic in self.topic_names]
 
-        self.get_logger().info("Depth Estimation ONNX Node Initialized")
+        # Approximate sync: allows small timestamp mismatch
+        self.ts = message_filters.ApproximateTimeSynchronizer(
+            subs, queue_size=5, slop=0.05
+        )
+        self.ts.registerCallback(self.sync_callback)
+
+        self.jpeg = TurboJPEG()
+        self.get_logger().info("Depth Estimation ONNX Node Initialized with synchronized subscribers")
 
     def preprocess_image(self, cv_image):
         h, w = cv_image.shape[:2]
@@ -66,78 +68,68 @@ class DepthEstimationONNXMultiNode(Node):
         depth = binding.get_outputs()[0].numpy()
         return depth
 
-    def image_callback(self, msg: CompressedImage, cam_idx: int):
-        try:
-            np_arr = np.frombuffer(msg.data, np.uint8)
+    def sync_callback(self, img0: CompressedImage, img1: CompressedImage,
+                      img2: CompressedImage, img3: CompressedImage):
+        images = [img0, img1, img2, img3]
 
-            timestamp_msg = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
-            timestamp_system = time.time()
-            latency = (timestamp_system - timestamp_msg) * 1000  # in milliseconds  
-            self.get_logger().info(f"Latency of image from camera {cam_idx}: {latency:.2f} ms")
-            ## print latency of image
-        
+        # Compute average timestamp for latency
+        avg_timestamp_msg = np.mean([m.header.stamp.sec + m.header.stamp.nanosec * 1e-9 for m in images])
+        timestamp_system = time.time()
+        latency = (timestamp_system - avg_timestamp_msg) * 1000  # ms
+        self.get_logger().info(f"Avg sync latency: {latency:.2f} ms")
 
-            ## Print time it took to decode
-            jpeg = TurboJPEG()
+        cv_images = []
+        for idx, msg in enumerate(images):
+            try:
+                t0 = time.time()
+                cv_image = self.jpeg.decode(msg.data, flags=TJFLAG_FASTUPSAMPLE | TJFLAG_FASTDCT)
+                t1 = time.time()
+                self.get_logger().info(f"Time to decode camera {idx}: {(t1-t0)*1000:.2f} ms")
+                cv_images.append((cv_image, msg.header))
+            except Exception as e:
+                self.get_logger().error(f"Failed to decode image {idx}: {e}")
+                return
 
-            t0=time.time()
-            #cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            cv_image = jpeg.decode(msg.data,flags=TJFLAG_FASTUPSAMPLE|TJFLAG_FASTDCT)
-            t1=time.time()
-            self.get_logger().info(f"Time to decode image from camera {cam_idx}: {(t1-t0)*1000:.2f} ms")
-            ## Decode with turbo jpeg 
-            #jpeg = TurboJPEG()
-            #cv_image = jpeg.decode(msg.data, pixel_format=TJPF_GRAY, flags=TJFLAG_FASTUPSAMPLE | TJFLAG_FASTDCT)
+        # Now process all 4 images together
+        self.process_batch(cv_images)
 
-        except Exception as e:
-            self.get_logger().error(f"Failed to decode image from camera {cam_idx}: {e}")
-            return
+        final_timestamp = time.time()
+        total_latency = (final_timestamp - avg_timestamp_msg) * 1000
+        self.get_logger().info(f"Total sync latency: {total_latency:.2f} ms")
 
-        self.image_buffers[cam_idx] = (cv_image, msg.header)
 
-        if all(self.image_buffers.values()):
-            self.process_batch()
-            self.image_buffers = {i: None for i in range(4)}
+    def process_batch(self, cv_images):
+        batch_input = np.zeros((4, 3, self.input_size, self.input_size), dtype=np.float32)
+        headers, orig_sizes = [], []
 
-    def process_batch(self):
-        images = []
-        headers = []
-        orig_sizes = []
-
-        for i in range(4):
-            cv_image, header = self.image_buffers[i]
+        for i, (cv_image, header) in enumerate(cv_images):
             img, h, w = self.preprocess_image(cv_image)
-            images.append(img)
+            batch_input[i] = img
             headers.append(header)
             orig_sizes.append((h, w))
 
-        batch_input = np.concatenate(images, axis=0)
-
+        # Run inference
         start_time = time.time()
         depth_batch = self.run_inference(batch_input)
         inference_time = time.time() - start_time
-        self.get_logger().info(f"Batched Inference Rate: {1/inference_time:.2f} FPS")
+        self.get_logger().info(
+            f"Batched inference: {inference_time*1000:.2f} ms "
+            f"({1/inference_time:.2f} FPS)"
+        )
 
+        # Resize and publish results
         for i in range(4):
-            depth = depth_batch[i]
-
             h, w = orig_sizes[i]
+            depth_resized = cv2.resize(
+                depth_batch[i].astype(np.float32),
+                (w, h),
+                interpolation=cv2.INTER_CUBIC
+            )
 
-            depth_tensor = torch.from_numpy(depth).unsqueeze(0).unsqueeze(0)
-            depth_resized = torch.nn.functional.interpolate(
-                depth_tensor,
-                size=(h, w),
-                mode='bicubic',
-                align_corners=False
-            ).squeeze().cpu().numpy()
-
-            t0 = time.time()
-            # Publish the resized depth map as a 32FC1 image
-            depth_msg = self.bridge.cv2_to_imgmsg(depth_resized.astype(np.float32), encoding='32FC1')
-            t1 = time.time()
-            self.get_logger().info(f"Time to process depth image from camera {i}: {(t1-t0)*1000:.2f} ms")
+            depth_msg = self.bridge.cv2_to_imgmsg(depth_resized, encoding='32FC1')
             depth_msg.header = headers[i]
             self.depth_publishers[i].publish(depth_msg)
+
 
 
 def main(args=None):
