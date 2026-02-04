@@ -6,7 +6,9 @@ import launch_ros
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_path
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, RegisterEventHandler, EmitEvent
+from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown
 
 
 def generate_launch_description():
@@ -24,7 +26,7 @@ def generate_launch_description():
         description='Play rosbag'
     )
 
-    default_bag_dir = get_package_share_path('depth_estimation_ros') / 'rosbags' / 'test_bag_3'
+    default_bag_dir = get_package_share_path('depth_estimation_ros') / 'rosbags' / 'scene2_3_student'
 
     rosbag_path_arg = DeclareLaunchArgument(
         'rosbag_path',
@@ -58,16 +60,23 @@ def generate_launch_description():
         name='rviz2',
         arguments=['-d', str(rviz_config_file)],
         output='screen'
-    )   
+    )  
+
+    goal_marker = Node(
+        package='depth_estimation_ros',
+        executable='goal_publisher',
+        name='goal_marker',
+        parameters=[{'use_sim_time': False}],
+        output='screen',
+    ) 
 
 
     robomaster_pkg_share = get_package_share_path('ros_robomaster_description')
     robomaster_launch_file = robomaster_pkg_share / 'launch' / 'ros_robomaster_description.launch.py'
-    
 
     ## Play the rosbag with the camera data at location rosbag_path and loop it, at 10% rate
     play_rosbag = ExecuteProcess(
-        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop', '--rate', '1.0'],
+        cmd=['ros2', 'bag', 'play', LaunchConfiguration('rosbag_path'), '--loop', '--rate', '0.5'],
         output='screen',
         condition=IfCondition(LaunchConfiguration('play_bag'))
     )
@@ -86,6 +95,13 @@ def generate_launch_description():
         }.items()
     )
 
+    shutdown_on_bag_exit = RegisterEventHandler(
+        OnProcessExit(
+            target_action=play_rosbag,
+            on_exit=[EmitEvent(event=Shutdown(reason='Rosbag finished'))]
+        )
+    )
+
 
 
 
@@ -99,8 +115,9 @@ def generate_launch_description():
         zenoh_router,
         include_robomaster,
         play_rosbag,  # <-- Add this line!
-        #pub_wheel_joints,
+        pub_wheel_joints,
         rviz_node,
+        goal_marker,
 
         # Launch Camera 
         Node(
