@@ -20,10 +20,10 @@ Contains ros2 node for the DepthAnything-v2 MDE model. This repo is built using 
 │   ├── goal_publisher.py
 │   ├── depth_anything_v2/          # DepthAnything-v2 repository for reference
 ├── launch/
-│   ├── depth_estimation_and_pointcloud.launch.py
-│   ├── depth_map_to_pointcloud_node.launch.py
-│   ├── depth_map_to_pointcloud_colorised_node.launch.py
-│   └── play_mde_rl_rosbag.launch.py
+│   ├── depth_estimation_and_pointcloud.launch.py         # Launch MDE and pointcloud vis nodes
+│   ├── depth_map_to_pointcloud_node.launch.py            # Launch pointcloud vis node
+│   ├── depth_map_to_pointcloud_colorised_node.launch.py  # Launch pointcloud vis node with color
+│   └── play_mde_rl_rosbag.launch.py                      # Launch MDE and pointcloud vis for pre-recorded rosbags
 ├── checkpoints/                    # ONNX model checkpoints
 ├── package.xml
 ├── setup.py
@@ -51,7 +51,19 @@ sudo apt-get install ros-${ROS_DISTRO}-compressed-image-transport
 
 ## Checkpoints
 
-The ONNX checkpoints are available in the /checkpoints folder
+The following ONNX checkpoints are available in the `/checkpoints` folder:
+
+- **vits.onnx** - Depth-Anything V2 Small model (single-channel output)
+- **vits_multi.onnx** - Depth-Anything V2 Small model (4-channel output)
+- **lars_multi.onnx** - Trained by Lars Erbach, Depth-Anything V2 Small model (4-channel output)
+
+4-channel = 4 images simultaneously
+
+###  ONNX Checkpoint creation
+
+Refer to this repo to export a .pth model to ONNX
+
+[]
 
 ## Usage
 
@@ -67,11 +79,9 @@ Then run the command
 ros2 launch depth_estimation_ros depth_estimation_and_pointcloud.launch.py
 ```
 
-### Visualisation
-```bash
-rqt
-```
+## Improvements
 
+- []()
 
 ## Citation
 
