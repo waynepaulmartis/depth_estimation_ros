@@ -63,7 +63,7 @@ The following ONNX checkpoints are available in the `/checkpoints` folder:
 
 Refer to this repo to export a .pth model to ONNX
 
-[]
+[https://github.com/fabio-sim/Depth-Anything-ONNX/tree/main/depth_anything_v2](https://github.com/fabio-sim/Depth-Anything-ONNX/tree/main/depth_anything_v2)
 
 ## Usage
 
@@ -79,9 +79,6 @@ Then run the command
 ros2 launch depth_estimation_ros depth_estimation_and_pointcloud.launch.py
 ```
 
-## Improvements
-
-- []()
 
 ## Citation
 
