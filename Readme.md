@@ -1,7 +1,11 @@
 
 # ROS2 Package for Monocular Depth Estimation
 
-Contains ros2 node for the DepthAnything-v2 MDE model.
+Contains ros2 node for the DepthAnything-v2 MDE model. This repo is built using the following references
+
+- [Depth-Anything-ONNX](https://github.com/fabio-sim/Depth-Anything-ONNX)
+- [Depth-Anything-v2](https://github.com/DepthAnything/Depth-Anything-V2)
+
 
 ## File Structure
 
@@ -14,8 +18,7 @@ Contains ros2 node for the DepthAnything-v2 MDE model.
 │   ├── depth_map_to_pointcloud.py
 │   ├── depth_map_to_pointcloud_colorised.py
 │   ├── goal_publisher.py
-│   ├── depth_anything_v2/          # DepthAnything-v2 repository
-│   └── depth_anything_onnx/        # ONNX utilities
+│   ├── depth_anything_v2/          # DepthAnything-v2 repository for reference
 ├── launch/
 │   ├── depth_estimation_and_pointcloud.launch.py
 │   ├── depth_map_to_pointcloud_node.launch.py
